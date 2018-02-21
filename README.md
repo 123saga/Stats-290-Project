@@ -2,7 +2,6 @@
 Stat 290: Computing for Data Science
 
 ## Team:
-* Ryszard Grzegorski
 * Sagar Ganapananeni
 * Vikramjeet Singh
 
@@ -18,3 +17,6 @@ Design and build an R package that would help in
 * Imputing missing values (dealing with NAs)
 * Basic transformations of data (applying log transformation, binning a continuous variable)
 * Plotting distribution of features before and after applying transformations. 
+
+### idea 3: 
+Weather data project
