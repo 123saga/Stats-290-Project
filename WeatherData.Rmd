@@ -16,45 +16,36 @@ library(dplyr)
 library(tidyr)
 library(data.table) 
 
-
-#data1 <- read.table("./daily01/2017/CRND0103-2017-AK_Barrow_4_ENE.txt")
-#data2 <- read.table("./daily01/2017/CRND0103-2017-AK_Cordova_14_ESE.txt")
-#data3 <- rbind(data1, data2)
-
-#allfiles = list.files(path= "./daily01/2017", pattern="*.txt")
-#flag <- 0
-#read_files <- function(file_name) {
-#        file <- read.table(file_name) %>% mutate(file_name = file_name) 
-#        if (flag==0){
-#                large_file <- file
-#                flag <- 1
-#        }
-#        if (flag==1){
-#                large_file <- rbind(large_file, file)
-#        }
-#}
-
+# setting path of folder for files
 filepath <- "./daily01/2017"
+
+# creating a function to append filename to file data
 add_filename <- function(x) {
         file <- fread(x)
         file$filename <- x
         file
         }
+# creating a function to bind data of all files in a single file called "allfiles"
 mergefile <- function(filepath){
         filenames=list.files(path=filepath, full.names=TRUE, pattern = "\\.txt$")
         allfiles <- rbindlist(lapply(filenames, fil))
         }
 allfiles = mergefile(filepath)
 
+# extracting YEAR, STATE, AREA columns from file name 
 allfiles <- separate(data=allfiles, col=filename, into=c("a","area","c"), sep="_")
 allfiles <- separate(data=allfiles, col=a, into=c("code","year","state"), sep="-")
-
 allfiles <- allfiles[,-c("code","c")]
+
+# creating .rda file for database 
 save(allfiles, file = "database.rda")
-#split_filenames <- strsplit(allfiles, "-")
-#state_area_direction <- sapply(split_state, '[[', 3)
-#split_state_area_direction <- strsplit(state_area_direction, "_")
-#state <- sapply(split_state_area_direction, '[[', 1)
-#area <- sapply(split_state_area_direction, '[[', 2)
+
+# naming columns
+names(allfiles) <- c(as.character(headers[[2]]), c("YEAR", "STATE", "AREA"))
+
+# removing columns 1(WBANNO) and 3(CRX_VN)
+# look for other columns to be removed for e.g. columns with missing data have lowest possible integer
+allfiles <- allfiles[, -c("WBANNO","CRX_VN")]
+
 ```
 
