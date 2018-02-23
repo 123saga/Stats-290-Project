@@ -33,19 +33,40 @@ mergefile <- function(filepath){
 allfiles = mergefile(filepath)
 
 # extracting YEAR, STATE, AREA columns from file name 
-allfiles <- separate(data=allfiles, col=filename, into=c("a","area","c"), sep="_")
-allfiles <- separate(data=allfiles, col=a, into=c("code","year","state"), sep="-")
-allfiles <- allfiles[,-c("code","c")]
+allfiles <- separate(data=allfiles, col=filename, into=c("code","year","location_string"), sep="-")
+allfiles <- separate(data=allfiles, col=location_string, into=c("location_str", "txt"), sep="\\.txt")
+allfiles <- separate(data=allfiles, col=location_str, into=c("state", "rest"), sep="_", extra="merge")
+allfiles$rest <- reverse.string(allfiles$rest)
+allfiles <- separate(data=allfiles, col=rest, into=c("direction_text", "direction_number", "area"), sep="_", extra="merge")
+allfiles$direction_text <- reverse.string(allfiles$direction_text)
+allfiles$direction_number <- reverse.string(allfiles$direction_number)
+allfiles$area <- reverse.string(allfiles$area)
 
+# removing extra columns and naming rest of the columns
+allfiles <- allfiles[,-c("code","txt")]
+names(allfiles) <- c(as.character(headers[[2]]),
+                     c("YEAR", "STATE", "DIRECTION_TEXT", "DIRECTION_NUMBER", "AREA"))
 # creating .rda file for database 
 save(allfiles, file = "database.rda")
-
-# naming columns
-names(allfiles) <- c(as.character(headers[[2]]), c("YEAR", "STATE", "AREA"))
 
 # removing columns 1(WBANNO) and 3(CRX_VN)
 # look for other columns to be removed for e.g. columns with missing data have lowest possible integer
 allfiles <- allfiles[, -c("WBANNO","CRX_VN")]
+
+```
+
+```{r}
+# creating function getAllLocations - it returns 2 column data.frame of State-Area pairs for a user-input State. In absence of user-input, data.frame of all State-Area pairs is returned
+getAllLocations <- function(state){
+        if(missing(state)) {
+                unique_state_area <- unique(allfiles[,c("STATE","AREA")])
+                return(unique_state_area)
+        } else {
+                unique_state_area <- unique(allfiles[,c("STATE","AREA")])
+                list_state_area <- dlply(unique_state_area,.(STATE),c) #why 147, should be 156; also take care of state area segregation _ St._Paul
+                as.data.frame(list_state_area[[state]])
+        }
+}
 
 ```
 
