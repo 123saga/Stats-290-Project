@@ -14,13 +14,13 @@ getWeatherDataForDateRange  <- function(AREA=NA,STATE=NA,from,to){
   to<- as.Date(to)
   if(is.na(AREA) && is.na(STATE)){
     return_data <- subset(allfiles,LST_DATE>=from & LST_DATE<=to)
-    } else
-    
-    return_data <- subset(allfiles,
+    } else{
+        return_data <- subset(allfiles,
                           LST_DATE>=from &
                             LST_DATE<=to &
                             STATE==STATE & 
                             AREA==AREA)
+        }
   
     return_data
   
