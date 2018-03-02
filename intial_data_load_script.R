@@ -7,14 +7,17 @@ options(scipen = 999)
 setwd("C:/Users/gsgr/Documents/SCPD/STATS290/Project/Stats-290-Project")
 
 ## params chage to jan-jun
-from <- as.Date("2017-07-01")
-to <- as.Date("2017-07-02")
+from <- as.Date("2017-01-01")
+to <- as.Date("2017-01-31")
 
 # downlaod from git
-load("Locations.rda")
+#load("Locations.rda")
 
  location_ids <- Locations%>%
    dplyr::select(id)
+ 
+ ## progress 
+ pb <- txtProgressBar(min = 0, max = nrow(location_ids), style = 3)
  
  
 ## make API call
@@ -23,7 +26,9 @@ for (i in 1:nrow(location_ids)){
   API_URL <- "https://www.ncdc.noaa.gov/crn/api/v1.0/sites/"
   API_URL_final<- paste0(API_URL,loc_id,
                          "/data?start=",from,"T00:00Z&end=",to,
-                         "T00:00Z&metric=t_official&metric=t_max&metric=t_min")
+                         "T00:00Z&metric=t_official&metric=t_max&metric=t_min&metric=ws_max",
+                         "&metric=windspd&metric=rh_std&metric=solarad&metric=p_official")
+  
   
   data <- fromJSON(RCurl::getURL(API_URL_final))
   
@@ -31,12 +36,15 @@ for (i in 1:nrow(location_ids)){
     data <- data[,c("start","value","metric")]
     names(data) <- c("time","value","metric")
     data$id <- loc_id
+    if(exists("weather_data")){
+      weather_data <- rbind(weather_data,data)
+    } else 
+      weather_data <- data
   }
   
-  if(exists("weather_data")){
-    weather_data <- rbind(weather_data,data)
-  } else 
-    weather_data <- data
+  setTxtProgressBar(pb, i)
+  
 }
 
-saveRDS(weather_data,'weather_data_2.rda')
+ close(pb)
+saveRDS(weather_data,'weather_data.rda')
