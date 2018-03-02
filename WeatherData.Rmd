@@ -12,12 +12,14 @@ knitr::opts_chunk$set(echo = TRUE)
 ## R Markdown
 
 ```{r}
+library(plyr)
 library(dplyr)
 library(tidyr)
 library(data.table) 
+library(tcR)
 
 # setting path of folder for files
-filepath <- "./daily01/2017"
+path <- "./hourly02/2017"
 
 # creating a function to append filename to file data
 add_filename <- function(x) {
@@ -25,48 +27,84 @@ add_filename <- function(x) {
         file$filename <- x
         file
         }
-# creating a function to bind data of all files in a single file called "allfiles"
+# creating a function to bind data of all files in a single file called "offline_database"
 mergefile <- function(filepath){
         filenames=list.files(path=filepath, full.names=TRUE, pattern = "\\.txt$")
-        allfiles <- rbindlist(lapply(filenames, fil))
+        allfiles <- rbindlist(lapply(filenames, add_filename))
         }
-allfiles = mergefile(filepath)
+offline_database = mergefile(path)
 
 # extracting YEAR, STATE, AREA columns from file name 
-allfiles <- separate(data=allfiles, col=filename, into=c("code","year","location_string"), sep="-")
-allfiles <- separate(data=allfiles, col=location_string, into=c("location_str", "txt"), sep="\\.txt")
-allfiles <- separate(data=allfiles, col=location_str, into=c("state", "rest"), sep="_", extra="merge")
-allfiles$rest <- reverse.string(allfiles$rest)
-allfiles <- separate(data=allfiles, col=rest, into=c("direction_text", "direction_number", "area"), sep="_", extra="merge")
-allfiles$direction_text <- reverse.string(allfiles$direction_text)
-allfiles$direction_number <- reverse.string(allfiles$direction_number)
-allfiles$area <- reverse.string(allfiles$area)
+offline_database <- separate(data=offline_database, col=filename, into=c("code","year","location_string"), sep="-")
+offline_database <- separate(data=offline_database, col=location_string, into=c("location_str", "txt"), sep="\\.txt")
+offline_database <- separate(data=offline_database, col=location_str, into=c("state", "rest"), sep="_", extra="merge")
+offline_database$rest <- reverse.string(offline_database$rest)
+offline_database <- separate(data=offline_database, col=rest, into=c("direction_text", "direction_number", "area"), sep="_", extra="merge")
+offline_database$direction_text <- reverse.string(offline_database$direction_text)
+offline_database$direction_number <- reverse.string(offline_database$direction_number)
+offline_database$area <- reverse.string(offline_database$area)
 
-# removing extra columns and naming rest of the columns
-allfiles <- allfiles[,-c("code","txt")]
-names(allfiles) <- c(as.character(headers[[2]]),
-                     c("YEAR", "STATE", "DIRECTION_TEXT", "DIRECTION_NUMBER", "AREA"))
-# creating .rda file for database 
-save(allfiles, file = "database.rda")
+# removing extra columns created above
+offline_database <- offline_database[,-c("code","txt")]
 
-# removing columns 1(WBANNO) and 3(CRX_VN)
-# look for other columns to be removed for e.g. columns with missing data have lowest possible integer
-allfiles <- allfiles[, -c("WBANNO","CRX_VN")]
+# adding headers to the columns
+headers <- read.table("./hourly02/HEADERS.txt")
+names(offline_database) <- c(c("WBANNO", "UTC_DATE", "UTC_TIME", "LST_DATE", "LST_TIME", "CRX_VN", "LONGITUDE", "LATITUDE", "T_CALC", "T_HR_AVG", "T_MAX", "T_MIN", "P_CALC", "SOLARAD", "SOLARAD_FLAG", "SOLARAD_MAX", "SOLARAD_MAX_FLAG", "SOLARAD_MIN", "SOLARAD_MIN_FLAG", "SUR_TEMP_TYPE", "SUR_TEMP", "SUR_TEMP_FLAG", "SUR_TEMP_MAX", "SUR_TEMP_MAX_FLAG", "SUR_TEMP_MIN", "SUR_TEMP_MIN_FLAG", "RH_HR_AVG", "RH_HR_AVG_FLAG", "SOIL_MOISTURE_5", "SOIL_MOISTURE_10", "SOIL_MOISTURE_20", "SOIL_MOISTURE_50", "SOIL_MOISTURE_100", "SOIL_TEMP_5", "SOIL_TEMP_10", "SOIL_TEMP_20", "SOIL_TEMP_50", "SOIL_TEMP_100"), c("YEAR", "STATE", "DIRECTION_TEXT", "DIRECTION_NUMBER", "AREA"))
 
+# creating .rda file for offline_database 
+save(offline_database, file = "offline_database.rda")
+
+# keeping only relevant columns 
+
+relevant_offline_database <- offline_database[, c("UTC_DATE", "UTC_TIME", "LST_DATE", "LST_TIME","LONGITUDE", "LATITUDE", "T_CALC", "T_HR_AVG", "T_MAX", "T_MIN", "P_CALC","YEAR", "STATE", "DIRECTION_TEXT", "DIRECTION_NUMBER", "AREA")]
+
+relevant_offline_database$VECTOR <- paste0(relevant_offline_database$DIRECTION_NUMBER, " ", relevant_offline_database$DIRECTION_TEXT )
+
+# creating .rda file for relevant_offline_database having selected columns of interest 
+save(relevant_offline_database, file = "relevant_offline_database.rda")
 ```
 
 ```{r}
 # creating function getAllLocations - it returns 2 column data.frame of State-Area pairs for a user-input State. In absence of user-input, data.frame of all State-Area pairs is returned
+
 getAllLocations <- function(state){
         if(missing(state)) {
-                unique_state_area <- unique(allfiles[,c("STATE","AREA")])
+                unique_state_area <- unique(relevant_offline_database[,c("STATE","AREA")])
                 return(unique_state_area)
         } else {
-                unique_state_area <- unique(allfiles[,c("STATE","AREA")])
+                unique_state_area <- unique(relevant_offline_database[,c("STATE","AREA")])
                 list_state_area <- dlply(unique_state_area,.(STATE),c) #why 147, should be 156; also take care of state area segregation _ St._Paul
                 as.data.frame(list_state_area[[state]])
         }
 }
 
+```
+
+```{r}
+# getting data from APIs
+library(httr)
+library(curl)
+#query <- "https://www.ncdc.noaa.gov/cdo-web/api/v2/datasets"
+query <- "https://www.ncdc.noaa.gov/crn/api/v1.0/sites"
+token <- "jQyrbzexeCEaWFIDBAwCWqbrkrVQTVhM"
+httpResponse <- GET(query, add_headers("token" = token), accept_json())
+results = fromJSON(content(httpResponse, "text"))
+data <- content(httpResponse)
+```
+
+```{r}
+library(httr)
+url <- "https://www.ncdc.noaa.gov"
+path <- "cdo-web/api/v2/data?datasetid=GHCND&startdate=2010-05-01&enddate=2010-05-02"
+raw.result <- GET(url = url, path = path)
+names(raw.result)
+```
+
+```{r}
+library(curl)
+library(jsonlite)
+diamonds2 <- stream_in(curl("https://jeroenooms.github.io/data/diamonds.json"))
+curl("https://jeroenooms.github.io/data/diamonds.json")
+                              
 ```
 
