@@ -14,7 +14,7 @@ to <- as.Date("2017-07-02")
 load("Locations.rda")
 
  location_ids <- Locations%>%
-  dplyr::select(id)
+   dplyr::select(id)
  
  
 ## make API call
@@ -27,7 +27,7 @@ for (i in 1:nrow(location_ids)){
   
   data <- fromJSON(RCurl::getURL(API_URL_final))
   
-  if(!is.na(data) & nrow(data)!=0){
+  if(is.data.frame(data)){
     data <- data[,c("start","value","metric")]
     names(data) <- c("time","value","metric")
     data$id <- loc_id
