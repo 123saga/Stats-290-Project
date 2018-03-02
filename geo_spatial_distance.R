@@ -1,8 +1,15 @@
+library(RCurl)
+library(jsonlite)
 library(geosphere)
-setwd("C:/Users/gsgr/Documents/SCPD/STATS290/Project/Stats-290-Project")
-load('database.rda')
 
-Locations <- unique(allfiles[,c("AREA","STATE","LONGITUDE","LATITUDE")])
+URL <- "https://www.ncdc.noaa.gov/crn/api/v1.0/sites"
+
+Locations <- fromJSON(RCurl::getURL(URL
+)
+)
+
+# save locations information
+saveRDS(Locations,'Locations.rda')
 
 for(i in 1:nrow(Locations)){
   ## get current location
@@ -11,8 +18,8 @@ for(i in 1:nrow(Locations)){
   Rest_of_location <- Locations[-c(i),]
   
   for(j in 1:nrow(Rest_of_location)){
-    Rest_of_location$Distance[j] <- distm(c(Current_location$LONGITUDE, Current_location$LATITUDE),
-                                          c(Rest_of_location$LONGITUDE[j], Rest_of_location$LATITUDE[j]),
+    Rest_of_location$Distance[j] <- distm(c(Current_location$longitude, Current_location$latitude),
+                                          c(Rest_of_location$longitude[j], Rest_of_location$latitude[j]),
                                           fun = distHaversine)
     
   }
@@ -23,7 +30,10 @@ for(i in 1:nrow(Locations)){
                          by=NULL)
   
   if(exists("Distance_data_master")){
-  Distance_data_master <- rbind(Distance_data_master,Distance_data)
+    Distance_data_master <- rbind(Distance_data_master,Distance_data)
   } else 
     Distance_data_master <- Distance_data
-  }
+}
+
+## save distances (lot of TO_columns can be dropped later)
+saveRDS(Distance_data_master,'Distance_data_master.rda')
