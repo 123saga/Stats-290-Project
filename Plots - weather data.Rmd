@@ -1,0 +1,253 @@
+---
+title: "Plots - weather data"
+author: "Vikramjeet Singh"
+date: "March 6, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+# adding libraries and database
+#library(magrittr)
+library(ggmap)
+#library(tidyr)
+library(tidyverse)
+library(data.table) 
+library(tcR)
+library(ggplot2)
+library(lubridate)
+#library(plyr)
+#library(dplyr)
+
+# replace following with weatherdata function
+weather_data <- readRDS("C:/Users/viksi/Desktop/Personal/ML/Stats290/Final Project - WeatherData Package/weather_data.rda")
+locations <- readRDS("C:/Users/viksi/Desktop/Personal/ML/Stats290/Final Project - WeatherData Package/Locations.rda")
+```
+
+```{r}
+# Timeseries plots
+
+plot_tseries <- function(sDate, eDate, measure, siteid){
+       
+      #  Error handling for Dates
+      #  if (sDate >= eDate) {
+      #          print("End Date must be after Start Date")
+      #          
+      #  }
+      
+      # Error handling for INVALID dates, measure, site id
+      # Error handling for not entering a variable
+     
+      data <-   weather_data %>% 
+                filter(metric==measure, id==siteid) %>% 
+                separate(col=time, into=c("date","time"), sep="T") %>%
+                group_by(date) %>%
+                summarize(value=max(value)) 
+        
+       sIndex <- which(data$date==sDate)
+       eIndex <- which(data$date==eDate)
+       data <- slice(data, sIndex:eIndex)
+       
+       data$date <- as.Date(data$date)
+        
+       # Print units on y axis depending on measure
+       if (measure=="t_official" | measure=="t_max" | measure=="tmin"){
+               y_axis_label = "Temp in Celcius"
+       } else if (measure=="p_official") {
+               y_axis_label = "Precipitation in mm" 
+       } else if (measure=="windspd" | measure=="ws_max") {
+               y_axis_label = "Wind Speed in m/s" 
+       } else if (measure=="rh_std") {
+               y_axis_label = "Relative Humidity in %"
+       } else if (measure=="solarad"){
+              y_axis_label = "Solar Radiation in W/m^2" 
+       }
+               
+               
+       plot <-  ggplot(data) + 
+                aes(x=date, y=value) + 
+                geom_line(colour="blue", size=1) +
+                removeGrid() +
+                scale_x_date(date_breaks = "1 week", date_labels="%d-%b-%y") +
+                theme_minimal(base_size = 20) +
+                rotateTextX() +
+                ggtitle(label="Time Series Plot of Weather Indicator") +
+                labs(x=NULL, y=y_axis_label)
+        
+        plot 
+# examples to try
+# plot_tseries("2017-01-02", "2017-03-04", "rh_std", 1001)
+# plot_tseries("2017-03-02", "2017-03-24", "rh_std", 1001)
+        
+}
+```
+
+```{r}
+# Box Plots
+plot_boxplot <- function(sDate, eDate, measure, siteid){
+        
+        # Same error handling as above over here
+        # once everything stiches well, abstract all these 4 function with one plot() 
+        
+        sD <- paste0(sDate,"T00:00:00Z") 
+        eD <- paste0(eDate,"T00:00:00Z") 
+        
+        data <- weather_data %>% 
+                filter(metric==measure, id==siteid) %>% 
+                select(time, value) 
+        sIndex <- which(data$time==sD)
+        eIndex <- which(data$time==eD)
+        
+        data <- slice(data, sIndex:eIndex)
+        
+        # Print units on y axis depending on measure
+       if (measure=="t_official" | measure=="t_max" | measure=="tmin"){
+               y_axis_label = "Temp in Celcius"
+       } else if (measure=="p_official") {
+               y_axis_label = "Precipitation in mm" 
+       } else if (measure=="windspd" | measure=="ws_max") {
+               y_axis_label = "Wind Speed in m/s" 
+       } else if (measure=="rh_std") {
+               y_axis_label = "Relative Humidity in %"
+       } else if (measure=="solarad"){
+              y_axis_label = "Solar Radiation in W/m^2" 
+       }
+   
+        print("5 most important quantiles")
+        print(quantile(data$value, c(0,0.25,0.5,0.75,1)))
+        
+        plot <-  ggplot(data = data, aes(x = "", y = value)) + 
+                geom_boxplot(fill="#4271AE", colour="#1F3552", size=1.5, alpha = 0.7)+
+                theme_minimal(base_size = 20)+
+                theme(legend.position = "none")+
+                ggtitle(label="Boxplot of Weather Indicator")+
+                labs(x=NULL, y=y_axis_label)
+        plot      
+# examples to try
+# plot_boxplot("2017-03-02", "2017-03-24", "rh_std", 1001)        
+}
+```
+
+```{r}
+# Calendar Heat Map
+plot_calhmap <- function(sDate, eDate, measure, siteid, text=TRUE){
+        
+        print("Advice: Pass text=FALSE if difference between start and end date is more than 2 months")
+        
+        #selecting date for specific siteid
+        data <- weather_data %>% 
+                filter(id==siteid) %>% 
+                select(time, metric, value) 
+     
+        #making sure dplyr is loaded after plyr to avoid issues with summarizing()
+       
+        #selecting date for specific measure
+        data <- separate(data, col=time, into=c("date","time"), sep="T") %>%
+                select(date, metric, value) %>%
+                group_by(metric, date) %>%
+                summarize(value=max(value)) %>%
+                filter(metric==measure)
+        
+        
+        # selecting data for specific start and end date
+        sIndex <- which(data$date==as.Date(sDate))
+        eIndex <- which(data$date==as.Date(eDate))
+        data <- slice(data, sIndex:eIndex)
+        
+        data$date <- as.Date(data$date)
+        data$metric <- as.factor(data$metric)
+        data$value <- as.numeric(data$value)
+        
+        data <- select(data, date, metric, value)
+
+        #getting data ready for plot
+        data$day = lubridate::wday(data$date,label=TRUE) 
+        data$day = with(data, factor(day, levels = rev(levels(day)))) 
+        data$weekStart = data$date - as.POSIXlt(data$date)$wday 
+
+        #rescaling the value 
+        data = data %>% group_by(metric)%>% 
+	mutate(rescaled_value = scales::rescale(value))
+        
+        # plotting the heatmap
+plot<-  ggplot(data,aes(x=weekStart, y=day, fill=value))+ 
+	geom_tile(colour="white",size=.1) + 
+	scale_fill_gradient(high="red",low="yellow") +
+      	scale_x_date(breaks=unique(data$weekStart),date_labels="%d-%b-%y")+
+	theme_minimal(base_size = 20)+
+	removeGrid()+
+	rotateTextX()+
+	ggtitle(label="Heatmap of Weather Indicators",subtitle = "# Activity per day")+
+	labs(x="Week Beginning", y=NULL) +
+	theme(
+		legend.position="none"
+		)
+
+        if(text==TRUE){
+                plot+
+                geom_text(data=data,aes(weekStart,day,label=value),colour="black",size=6)
+        } else {
+                plot
+        }
+
+#example to test
+#plot_calhmap("2017-01-02","2017-02-04","t_official",1001, TRUE)
+}
+```
+
+```{r}
+#Spatial Maps
+plot_spatial <- function(Date, measure) {
+        
+        #detach(package:plyr)
+        Date <- as.Date("2017-01-01")
+        data <- weather_data %>% 
+                filter(metric==measure) %>%
+                separate(col=time, into=c("date","time"), sep="T") %>%
+                filter(date==Date) %>%
+                group_by(id) %>%
+                summarize(value=max(value)) %>%
+                select(value, id)
+        
+        locations <- select(locations, id, latitude, longitude)
+        
+        data <- inner_join(data, locations, by="id")
+        
+        #rescaling the value 
+        data = data %>% mutate(rescaled_value = scales::rescale(value))
+
+#Continental States
+map<-get_map(location='united states', zoom=4, maptype = "terrain",
+             source='google',color='color')
+a<- ggmap(map) + 
+        #geom_point(data=data, aes(x=longitude, y=latitude),
+                            colour="red", size=5,alpha=0.25) + 
+                 scale_color_gradient()+
+                 geom_map(data=data, aes(map_id=id))
+
+Sys.sleep(5)
+#Alaska
+map<-get_map(location='alaska', zoom=4, maptype = "terrain",
+             source='google',color='color')
+b <- ggmap(map) + geom_point(aes(x=lon, y=lat), 
+             data=df,size=value, show.legend = TRUE, alpha=.25, na.rm = T, color='blue') + 
+             scale_color_gradient(low="beige", high="blue")
+Sys.sleep(5)
+#Hawaii
+map<-get_map(location='Hawaii', zoom=8, maptype = "terrain",
+             source='google',color='color')
+c <- ggmap(map) + geom_point(aes(x=lon, y=lat), 
+             data=df,size=value, show.legend = TRUE, alpha=.25, na.rm = T, color='blue') + 
+             scale_color_gradient(low="beige", high="blue")
+
+plot <- gridExtra::grid.arrange(a, b, c, nrow=1)
+plot
+
+}
+```
+
