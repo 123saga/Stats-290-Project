@@ -4,9 +4,7 @@ library(geosphere)
 
 URL <- "https://www.ncdc.noaa.gov/crn/api/v1.0/sites"
 
-Locations <- fromJSON(RCurl::getURL(URL
-)
-)
+Locations <- fromJSON(RCurl::getURL(URL))
 
 # save locations information
 saveRDS(Locations,'Locations.rda')

@@ -7,8 +7,8 @@ options(scipen = 999)
 setwd("C:/Users/gsgr/Documents/SCPD/STATS290/Project/Stats-290-Project")
 
 ## params chage to jan-jun
-from <- as.Date("2017-01-01")
-to <- as.Date("2017-01-31")
+from <- as.Date("2017-07-01")
+to <- as.Date("2017-12-31")
 
 # downlaod from git
 #load("Locations.rda")
@@ -47,4 +47,5 @@ for (i in 1:nrow(location_ids)){
 }
 
  close(pb)
+ weather_data <- unique(weather_data)
 saveRDS(weather_data,'weather_data.rda')
