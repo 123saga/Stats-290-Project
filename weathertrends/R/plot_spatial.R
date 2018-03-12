@@ -1,8 +1,3 @@
-library(ggplot2)
-library(ggmap)
-library(gridExtra)
-library(RCurl)
-library(jsonlite)
 
 
 
@@ -10,11 +5,7 @@ plot_spatial <- function(online=FALSE,Date=as.Date("2017-06-01"), measure="t_max
   
   onl<- online
   
-  data <-  getPlotData(online=onl,date = Date, metric = measure)
-  
-  # data_CS <- filter(data, state != "AK" & state != "HI")
-  # data_AK <- filter(data, state == "AK")
-  # data_HI <- filter(data, state == "HI")
+  data <-  getSpatialPlotData(online=onl,date = Date, metric = measure)
   
   #Continental States
   map <- get_map(location='united states', zoom=4, maptype = "terrain",
@@ -39,15 +30,10 @@ plot_spatial <- function(online=FALSE,Date=as.Date("2017-06-01"), measure="t_max
                             c('#a50026','#d73027','#f46d43','#fdae61','#abd9e9','#74add1','#4575b4','#313695'))+
     theme(legend.position = 'none')
 
-
-  
-  # options(warn=-1)
-  # return(gridExtra::grid.arrange(CS, AK, HI, nrow=2))
-  # options(warn=0)
-
-  #collage <- grid.arrange(CS,AK,HI,layout_matrix = rbind(c(1,1,1,1), c(2,2,3,3)), top = "Main title", bottom="Three plots")
+  #plotting on map
+  options(warn=-1)
   collage <- grid.arrange(CS,AK, HI,layout_matrix = rbind(c(2,2,1,1,1,1), c(3,3,1,1,1,1)), top = paste0("Spatial plot for:",measure))
-               
+  options(warn=0)            
   return(collage)
   
   #example to try
