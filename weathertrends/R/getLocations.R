@@ -1,6 +1,11 @@
-getAllLocations <- function(online=FALSE,state="CA"){
+getAllLocations <- function(online=FALSE,state=NA){
   
   st <- state
+  
+  URL <- "https://www.ncdc.noaa.gov/crn/api/v1.0/sites"
+  Locations <- fromJSON(RCurl::getURL(URL))
+  # save locations information
+  saveRDS(Locations,'Locations.rda')
   
   if(online==TRUE){
     URL <- "https://www.ncdc.noaa.gov/crn/api/v1.0/sites"
@@ -8,13 +13,17 @@ getAllLocations <- function(online=FALSE,state="CA"){
     Locations <- fromJSON(RCurl::getURL(URL))
   } else{
     
-    Locations <- readRDS("Locations.rda")
+    Locations <- readRDS('Locations.rda')
   }
     
-    if(st %in% (unique(Locations$state))){
+    if(st %in% (unique(Locations$state)) | is.na(st)){
     Locations <- Locations%>%
-      dplyr::select(state,location)%>%
-      filter(state==st)
+      dplyr::select(state,location)
+    
+    if(!is.na(st)){
+            Locations <- Locations%>%
+                    filter(state==st)
+               }
     
     Locations <- unique(Locations)
     
