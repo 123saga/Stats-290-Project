@@ -1,18 +1,14 @@
-library(tidyverse)
-library(data.table)
-library(zoo)
-library(lubridate)
+
 trim <- function (x) gsub("^\\s+|\\s+$", "", x)
 options(scipen = 999)
 
 ## function to get weather a data by location, all other params are optional
-getPlotData  <- function(online=TRUE,
+getSpatialPlotData  <- function(online=TRUE,
                             date="2017-01-01",
                             metric= "t_official"
                             )
 {
   
-  # Implement try-cath block to check inputs
   # format inputs
   from <- as.Date(date)
   to <- as.Date(date)+days(1)
@@ -28,13 +24,13 @@ getPlotData  <- function(online=TRUE,
     
     Locations <- readRDS("Distance_data_master.rda")
     
-    ## get id for selected location
+    #get list of location id for API call
     locations <- unique(Locations%>%
       dplyr::select(id,latitude, longitude,state,location))
     
-    location_ids <- unique(locations$id)
+    location_ids <- locations$id
       
-      # check offline falg
+      # check offline flag
       if(online==FALSE){
         ## connect to rda file
         weather_data_master <- readRDS("weather_data.rda")
