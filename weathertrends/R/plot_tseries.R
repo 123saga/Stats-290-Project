@@ -1,14 +1,5 @@
 plot_tseries <- function(online=FALSE,from='2017-10-01', to='2017-10-10', measure='t_max', location='Wolf Point',state='MT'){
   
-  #  Error handling for Dates
-  #  if (sDate >= eDate) {
-  #          print("End Date must be after Start Date")
-  #          
-  #  }
-  
-  # Error handling for INVALID dates, measure, site id
-  # Error handling for not entering a variable
-  
   sdate <- as.Date(from)
   edate <- as.Date(to)
   loc <- as.character(location)
