@@ -23,7 +23,7 @@ plot_tseries <- function(online=FALSE,from='2017-10-01', to='2017-10-10', measur
   metrics_desc_map <- subset(metrics_desc_map,id %in% measures)
   metrics_desc_map$display_text <- paste0(toupper(metrics_desc_map$id)," [",metrics_desc_map$description,"]")
   
-  plot_title <- paste0("Time Series plot for:",metrics_desc_map[which(metrics_desc_map$id==measure),c("display_text")])
+  plot_title <- paste0("Time Series plot:",metrics_desc_map[which(metrics_desc_map$id==measure),c("display_text")])
   
   ## function to get weather a data by location, all other params are optional
   data <- getWeatherData(online=onl,
@@ -63,10 +63,8 @@ plot_tseries <- function(online=FALSE,from='2017-10-01', to='2017-10-10', measur
     theme_minimal(base_size = 20) +
     rotateTextX() +
     ggtitle(label=plot_title) +
+    theme(plot.title = element_text(hjust = 0.5)) +
     labs(x=NULL, y=y_axis_label)
   
   plot 
-  # examples to try
-  # plot_tseries("2017-01-02", "2017-03-04", "rh_std", 1001)
-  # plot_tseries("2017-03-02", "2017-03-24", "rh_std", 1001)
 }
