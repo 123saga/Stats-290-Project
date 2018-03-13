@@ -1,6 +1,5 @@
 plot_calhmap <- function(online=FALSE,from='2017-10-01', to='2017-10-10', measure='t_max', location='Wolf Point',state='MT', text=TRUE){
   
-  print("Advice: Pass text=FALSE if difference between start and end date is more than 2 months")
   
   sdate <- as.Date(from)
   edate <- as.Date(to)
@@ -9,6 +8,16 @@ plot_calhmap <- function(online=FALSE,from='2017-10-01', to='2017-10-10', measur
   measure <- as.character(measure)
   onl <- online
   
+  
+  measures_list <- c("p_official","rh_std","solarad","t_max","t_min","t_official","windspd","ws_max")
+  
+  if(!(measure %in% measures_list)){
+    print(paste0("Please enter a valid measure from: ",paste0(measures,collapse = ", ")))
+    
+  } else {
+
+  print("Advice: Pass text=FALSE if difference between start and end date is more than 2 months")
+    
   # prepare lables for plot
   metrics_desc_map <- getMetrics()
   metrics_desc_map <- metrics_desc_map[c("id","description","units")]
@@ -25,6 +34,8 @@ plot_calhmap <- function(online=FALSE,from='2017-10-01', to='2017-10-10', measur
                          from=sdate,
                          to=edate)
   
+  if(is.data.frame(data)){
+    
   # filter for selected params
   data <- separate(data, col=time, into=c("date","time"), sep="T") %>%
     select(date, metric, value) %>%
@@ -69,5 +80,7 @@ plot_calhmap <- function(online=FALSE,from='2017-10-01', to='2017-10-10', measur
       geom_text(data=data,aes(weekStart,day,label=value),colour="black",size=6)
   } else {
     plot
+  }
+  }
   }
 }

@@ -16,6 +16,13 @@ plot_tseries <- function(online=FALSE,from='2017-10-01', to='2017-10-10', measur
   measure <- as.character(measure)
   onl <- online
   
+  measures_list <- c("p_official","rh_std","solarad","t_max","t_min","t_official","windspd","ws_max")
+  
+  if(!(measure %in% measures_list)){
+    print(paste0("Please enter a valid measure from: ",paste0(measures,collapse = ", ")))
+    
+  } else {
+    
   # prepare lables for plot
   metrics_desc_map <- getMetrics()
   metrics_desc_map <- metrics_desc_map[c("id","description","units")]
@@ -32,6 +39,8 @@ plot_tseries <- function(online=FALSE,from='2017-10-01', to='2017-10-10', measur
                          to=edate)
   
   
+  if(is.data.frame(data)){
+    
   data <-   data%>% 
     filter(metric==measure) %>% 
     separate(col=time, into=c("date","time"), sep="T") %>%
@@ -67,4 +76,6 @@ plot_tseries <- function(online=FALSE,from='2017-10-01', to='2017-10-10', measur
     labs(x=NULL, y=y_axis_label)
   
   plot 
+  }
+  }
 }

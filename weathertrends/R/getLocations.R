@@ -1,4 +1,4 @@
-getAllLocations <- function(online=FALSE,state=NA){
+getAllLocations <- function(online=TRUE,state=NA){
   
   st <- state
   
@@ -15,23 +15,23 @@ getAllLocations <- function(online=FALSE,state=NA){
     
     Locations <- readRDS('Locations.rda')
   }
-    
-    if(st %in% (unique(Locations$state)) | is.na(st)){
+  
+  if(st %in% (unique(Locations$state)) | is.na(st)){
     Locations <- Locations%>%
-      dplyr::select(state,location)
+      dplyr::select(state,location,id)
     
     if(!is.na(st)){
-            Locations <- Locations%>%
-                    filter(state==st)
-               }
+      Locations <- Locations%>%
+        filter(state==st)
+    }
     
     Locations <- unique(Locations)
     
     #return
     Locations
-    }else{
-      print("Invalid State code, Please enter a valid state code")
-    }
+  }else{
+    print("Invalid State code, Please enter a valid state code")
+  }
   
-
+  
 }
