@@ -59,7 +59,8 @@ plot_calhmap <- function(online=FALSE,from='2017-10-01', to='2017-10-10', measur
     ggtitle(label=plot_title)+
     labs(x="Calender Week Day (Sunday)", y=NULL) +
     theme(
-      legend.position="none"
+      legend.position="none",
+      plot.title = element_text(hjust = 0.5)
     )
   
   if(text==TRUE){
@@ -68,7 +69,4 @@ plot_calhmap <- function(online=FALSE,from='2017-10-01', to='2017-10-10', measur
   } else {
     plot
   }
-  
-  #example to test
-  #plot_calhmap("2017-01-02","2017-02-04","t_official",1001, TRUE)
 }
