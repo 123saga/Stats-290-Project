@@ -11,7 +11,7 @@ plot_boxplot <- function(online=FALSE, from='2017-10-01', to='2017-10-10', measu
   onl <- online
   
   # prepare lables for plot
-  metrics_desc_map <- readRDS("Metrics.rda")
+  metrics_desc_map <- getMetrics()
   metrics_desc_map <- metrics_desc_map[c("id","description","units")]
   measures <- c("p_official","rh_std","solarad","t_max","t_min","t_official","windspd","ws_max")
   metrics_desc_map <- subset(metrics_desc_map,id %in% measures)
