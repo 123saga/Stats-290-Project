@@ -33,7 +33,7 @@ plot_boxplot <- function(online=FALSE, from='2017-10-01', to='2017-10-10', measu
     summarize(value=max(value))
   
   data$date <- as.Date(data$date)
-
+  
   
   # Print units on y axis depending on measure
   if (measure=="t_official" | measure=="t_max" | measure=="tmin"){
@@ -59,6 +59,5 @@ plot_boxplot <- function(online=FALSE, from='2017-10-01', to='2017-10-10', measu
     theme(legend.position = "none", plot.title = element_text(hjust = 0.5))+
     ggtitle(label=plot_title)+
     labs(x=NULL, y=y_axis_label)
-  
   plot      
 }

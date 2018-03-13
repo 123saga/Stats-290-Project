@@ -30,36 +30,36 @@ plot_tseries <- function(online=FALSE,from='2017-10-01', to='2017-10-10', measur
                          location=loc,state=st,
                          from=sdate,
                          to=edate)
-                              
   
-    data <-   data%>% 
+  
+  data <-   data%>% 
     filter(metric==measure) %>% 
     separate(col=time, into=c("date","time"), sep="T") %>%
     group_by(date) %>%
     summarize(value=max(value))
-    
-    data$date <- as.Date(data$date)
-
   
-    # Print units on y axis depending on measure
-    if (measure=="t_official" | measure=="t_max" | measure=="tmin"){
-      y_axis_label = "Temperature (Celcius)"
-    } else if (measure=="p_official") {
-      y_axis_label = "Precipitation (mm)" 
-    } else if (measure=="windspd" | measure=="ws_max") {
-      y_axis_label = "Wind Speed (m/s)" 
-    } else if (measure=="rh_std") {
-      y_axis_label = "Relative Humidity %"
-    } else if (measure=="solarad"){
-      y_axis_label = "Solar Radiation (W/m^2)" 
-    }
+  data$date <- as.Date(data$date)
+  
+  
+  # Print units on y axis depending on measure
+  if (measure=="t_official" | measure=="t_max" | measure=="tmin"){
+    y_axis_label = "Temperature (Celcius)"
+  } else if (measure=="p_official") {
+    y_axis_label = "Precipitation (mm)" 
+  } else if (measure=="windspd" | measure=="ws_max") {
+    y_axis_label = "Wind Speed (m/s)" 
+  } else if (measure=="rh_std") {
+    y_axis_label = "Relative Humidity %"
+  } else if (measure=="solarad"){
+    y_axis_label = "Solar Radiation (W/m^2)" 
+  }
   
   
   plot <-  ggplot(data) + 
     aes(x=date, y=value) + 
     geom_line(colour="blue", size=1) +
     removeGrid() +
-    scale_x_date(date_breaks = "1 week", date_labels="%d-%b-%y") +
+    scale_x_date(date_labels="%d%b'%y") +
     theme_minimal(base_size = 20) +
     rotateTextX() +
     ggtitle(label=plot_title) +
