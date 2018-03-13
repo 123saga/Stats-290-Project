@@ -17,7 +17,7 @@ plot_boxplot <- function(online=FALSE, from='2017-10-01', to='2017-10-10', measu
   metrics_desc_map <- subset(metrics_desc_map,id %in% measures)
   metrics_desc_map$display_text <- paste0(toupper(metrics_desc_map$id)," [",metrics_desc_map$description,"]")
   
-  plot_title <- paste0("Box plot for:",metrics_desc_map[which(metrics_desc_map$id==measure),c("display_text")])
+  plot_title <- paste0("Box plot:",metrics_desc_map[which(metrics_desc_map$id==measure),c("display_text")])
   
   ## function to get weather a data by location, all other params are optional
   data <- getWeatherData(online=onl,
@@ -56,10 +56,9 @@ plot_boxplot <- function(online=FALSE, from='2017-10-01', to='2017-10-10', measu
   plot <-  ggplot(data = data, aes(x = "", y = value)) + 
     geom_boxplot(fill="#4271AE", colour="#1F3552", size=1.5, alpha = 0.7)+
     theme_minimal(base_size = 20)+
-    theme(legend.position = "none")+
+    theme(legend.position = "none", plot.title = element_text(hjust = 0.5))+
     ggtitle(label=plot_title)+
     labs(x=NULL, y=y_axis_label)
+  
   plot      
-  # examples to try
-  # plot_boxplot("2017-03-02", "2017-03-24", "rh_std", 1001)        
 }
