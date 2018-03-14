@@ -18,7 +18,8 @@ getSpatialPlotData  <- function(online=TRUE,
   } else {
     
     
-    Locations <- readRDS("Distance_data_master.rda")
+    load(file="Distance_data_master.rda")
+    Locations <- Distance_data_master
     
     #get list of location id for API call
     locations <- unique(Locations%>%
@@ -29,7 +30,9 @@ getSpatialPlotData  <- function(online=TRUE,
     # check offline flag
     if(online==FALSE){
       ## connect to rda file
-      weather_data_master <- readRDS("weather_data.rda")
+      load(file="weather_data.rda")
+      weather_data_master<- weather_data
+      rm(weather_data)
       
       weather_data <- weather_data_master%>%
         filter(metric==mtr)%>%

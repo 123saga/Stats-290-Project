@@ -25,7 +25,9 @@ getWeatherData  <- function(online=TRUE,
         
       } else {
         
-        Locations <- readRDS("Distance_data_master.rda")
+        load(file="Distance_data_master.rda")
+        Locations <- Distance_data_master
+        rm(Distance_data_master)
         
         if(is.na(dist)){
           ## get id for selected location
@@ -68,7 +70,7 @@ getWeatherData  <- function(online=TRUE,
           # check online flag
           if(online==FALSE){
             ## connect to rda file
-            weather_data <- readRDS("weather_data.rda")
+            load(file="weather_data.rda")
             
             weather_data <- weather_data%>%
               filter(id %in% location_ids$id)%>%

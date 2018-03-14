@@ -8,7 +8,7 @@ getMetrics <- function(online=FALSE){
     Metrics <- fromJSON(RCurl::getURL(URL))
   } else{
     
-    Metrics <- readRDS("Metrics.rda")
+    load(file="Metrics.rda")
   }
   
   #return
