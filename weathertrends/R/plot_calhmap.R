@@ -12,7 +12,7 @@ plot_calhmap <- function(online=FALSE,from='2017-10-01', to='2017-10-10', measur
   measures_list <- c("p_official","rh_std","solarad","t_max","t_min","t_official","windspd","ws_max")
   
   if(!(measure %in% measures_list)){
-    print(paste0("Please enter a valid measure from: ",paste0(measures,collapse = ", ")))
+    print(paste0("Please enter a valid measure from: ",paste0(measures_list,collapse = ", ")))
     
   } else {
 
@@ -21,8 +21,7 @@ plot_calhmap <- function(online=FALSE,from='2017-10-01', to='2017-10-10', measur
   # prepare lables for plot
   metrics_desc_map <- getMetrics()
   metrics_desc_map <- metrics_desc_map[c("id","description","units")]
-  measures <- c("p_official","rh_std","solarad","t_max","t_min","t_official","windspd","ws_max")
-  metrics_desc_map <- subset(metrics_desc_map,id %in% measures)
+  metrics_desc_map <- subset(metrics_desc_map,id %in% measures_list)
   
   metrics_desc_map$display_text <- paste0(toupper(metrics_desc_map$id)," [",metrics_desc_map$description,"]")
   
