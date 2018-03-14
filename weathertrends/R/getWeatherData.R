@@ -100,8 +100,8 @@ getWeatherData  <- function(online=TRUE,
           data <- fromJSON(RCurl::getURL(API_URL_final))
           
           if(is.data.frame(data)){
-            data <- data[,c("start","value","metric")]
-            names(data) <- c("time","value","metric")
+            data <- data[,c("start","value","metric","flag")]
+            names(data) <- c("time","value","metric","flag")
             data$id <- loc_id
             if(exists("weather_data")){
               weather_data <- rbind(weather_data,data)
@@ -118,6 +118,7 @@ getWeatherData  <- function(online=TRUE,
           return(NULL)
         }else{
         weather_data<- weather_data%>%
+          filter(flag==0)%>%
           inner_join((unique(Locations%>%select(id,location,vector,state))),by="id")
         
         # return weather_data
