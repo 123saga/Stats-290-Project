@@ -4,36 +4,36 @@ getSpatialPlotData  <- function(online=TRUE,
                                 metric= "t_official"
 )
 {
-  
+
   # format inputs
   from <- as.Date(date)
   to <- as.Date(date)+days(1)
   mtr <- as.character(metric)
   location_ids <- NA
   measures <- c("p_official","rh_std","solarad","t_max","t_min","t_official","windspd","ws_max")
-  
+
   if(!(metric %in% measures)){
     print(paste0("Please enter a valid measure from: ",paste0(measures,collapse = ",")))
-    
+
   } else {
-    
-    
-    load(file="Distance_data_master.rda")
+
+
+    load(file="data/Distance_data_master.rda")
     Locations <- Distance_data_master
-    
+
     #get list of location id for API call
     locations <- unique(Locations%>%
                           dplyr::select(id,latitude, longitude,state,location))
-    
+
     location_ids <- locations$id
-    
+
     # check offline flag
     if(online==FALSE){
       ## connect to rda file
-      load(file="weather_data.rda")
+      load(file="data/weather_data.rda")
       weather_data_master<- weather_data
       rm(weather_data)
-      
+
       weather_data <- weather_data_master%>%
         filter(metric==mtr)%>%
         filter(as.Date(time) == from)%>%
@@ -41,15 +41,15 @@ getSpatialPlotData  <- function(online=TRUE,
         group_by(id) %>%
         summarize(value=max(value)) %>%
         inner_join(locations, by=c("id"))
-      
+
       ## return data
       if(nrow(weather_data)==0){
         print("No data avaiable for given input parameters, please check the values once again")
       }
       weather_data
-      
+
     }else {
-      
+
       ## make API call
       for (i in 1:length(location_ids)){
         loc_id<-location_ids[i]
@@ -57,10 +57,10 @@ getSpatialPlotData  <- function(online=TRUE,
         API_URL_final<- paste0(API_URL,loc_id,
                                "/data?start=",from,"T00:00Z&end=",to,
                                "T00:00Z&metric=",mtr)
-        
-        
+
+
         data <- fromJSON(RCurl::getURL(API_URL_final))
-        
+
         if(is.data.frame(data)){
           data <- data[,c("start","value","metric","flag")]
           names(data) <- c("time","value","metric","flag")
@@ -71,8 +71,8 @@ getSpatialPlotData  <- function(online=TRUE,
             weather_data <- data
           }
         }
-        
-        
+
+
       }
       ## return data
       if(!exists("weather_data")){
@@ -83,8 +83,8 @@ getSpatialPlotData  <- function(online=TRUE,
         group_by(id) %>%
         summarize(value=max(value)) %>%
         inner_join(locations, by=c("id"))
-      
+
       weather_data
-    } 
+    }
   }# end of input verification
 }

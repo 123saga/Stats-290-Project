@@ -1,4 +1,4 @@
-plot_boxplot <- function(online=FALSE, from='2017-10-01', to='2017-10-10', measure='t_max', location='Wolf Point',state='MT'){
+plot_boxplot <- function(online=TRUE, from='2017-01-01', to='2017-01-31', measure='t_max', location='Wolf Point',state='MT'){
   
   # Same error handling as above over here
   # once everything stiches well, abstract all these 4 function with one plot() 
